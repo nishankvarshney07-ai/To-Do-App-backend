@@ -29,6 +29,11 @@ const TodoSchema = new mongoose.Schema(
         message: 'Difficulty is either easy, medium or difficult'
       },
       required: [true, 'A todo must have a title']
+    },
+    user : {
+      type : mongoose.Schema.Types.ObjectId,
+      ref:'User',
+      required: true
     }
   },
   {

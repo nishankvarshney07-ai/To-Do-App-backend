@@ -3,6 +3,7 @@ const router = express.Router();
 
 const todoController = require('./../controller/todoController');
 
+router.use(authController.protect);
 
 router
     .route('/')
