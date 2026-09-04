@@ -51,7 +51,10 @@ exports.getalltodo = catchAsync(async (req, res, next) => {
     let limit = req.query.limit * 1 || 10;
     let skip = (page - 1) * limit;
 
-    const query = Todo.find(filter)
+    const query = Todo.find({
+        ...filter,
+        user : req.user._id
+    })
         .sort(sort)
         .select(fields)
         .skip(skip)
@@ -69,7 +72,10 @@ exports.getalltodo = catchAsync(async (req, res, next) => {
     });
 });
 exports.createtodo = catchAsync(async (req, res) => {
-    const newTodo = await Todo.create(req.body);
+    const newTodo = await Todo.create({
+        ...req.body,
+        user : req.user._id
+    });
     res.status(201).json({
         status: 'success',
         data: {
@@ -78,7 +84,10 @@ exports.createtodo = catchAsync(async (req, res) => {
     })
 }),
     exports.gettodo = catchAsync(async (req, res, next) => {
-        const todoone = await Todo.findById(req.params.id);
+        const todoone = await Todo.findById({
+            _id : req.params.id,
+            user : req.user._id
+        });
         if (!todoone) {
             const err = new AppError('Todo not found', 404);
             return next(err)
@@ -91,7 +100,11 @@ exports.createtodo = catchAsync(async (req, res) => {
         });
     });
 exports.updatetodo = catchAsync(async (req, res, next) => {
-    const uptodo = await Todo.findByIdAndUpdate(req.params.id, req.body, {
+    const uptodo = await Todo.findByIdAndUpdate({
+        _id : req.params.id,
+        user: req.user._id
+    }, 
+    req.body, {
         new: true,
         runValidators: true
     })
@@ -109,7 +122,10 @@ exports.updatetodo = catchAsync(async (req, res, next) => {
 }),
     exports.deletetodo = catchAsync(async (req, res, next) => {
 
-        const todo = await Todo.findByIdAndDelete(req.params.id);
+        const todo = await Todo.findByIdAndDelete({
+            _id : req.params.id,
+            user : req.user._id
+        });
         if (!todo) {
             const err = new AppError('Todo not found', 404);
             return next(err);
