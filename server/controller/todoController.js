@@ -53,7 +53,7 @@ exports.getalltodo = catchAsync(async (req, res, next) => {
 
     const query = Todo.find({
         ...filter,
-        user : req.user._id
+        user: req.user._id
     })
         .sort(sort)
         .select(fields)
@@ -74,7 +74,7 @@ exports.getalltodo = catchAsync(async (req, res, next) => {
 exports.createtodo = catchAsync(async (req, res) => {
     const newTodo = await Todo.create({
         ...req.body,
-        user : req.user._id
+        user: req.user._id
     });
     res.status(201).json({
         status: 'success',
@@ -84,9 +84,9 @@ exports.createtodo = catchAsync(async (req, res) => {
     })
 }),
     exports.gettodo = catchAsync(async (req, res, next) => {
-        const todoone = await Todo.findById({
-            _id : req.params.id,
-            user : req.user._id
+        const todoone = await Todo.findOne({
+            _id: req.params.id,
+            user: req.user._id
         });
         if (!todoone) {
             const err = new AppError('Todo not found', 404);
@@ -100,11 +100,11 @@ exports.createtodo = catchAsync(async (req, res) => {
         });
     });
 exports.updatetodo = catchAsync(async (req, res, next) => {
-    const uptodo = await Todo.findByIdAndUpdate({
-        _id : req.params.id,
+    const uptodo = await Todo.findOneAndUpdate({
+        _id: req.params.id,
         user: req.user._id
-    }, 
-    req.body, {
+    },
+        updateData, {
         new: true,
         runValidators: true
     })
@@ -122,9 +122,9 @@ exports.updatetodo = catchAsync(async (req, res, next) => {
 }),
     exports.deletetodo = catchAsync(async (req, res, next) => {
 
-        const todo = await Todo.findByIdAndDelete({
-            _id : req.params.id,
-            user : req.user._id
+        const todo = await Todo.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user._id
         });
         if (!todo) {
             const err = new AppError('Todo not found', 404);
