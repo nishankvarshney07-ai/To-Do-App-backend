@@ -2,6 +2,7 @@
 const validator = require('validator');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -30,7 +31,14 @@ const userSchema = new mongoose.Schema({
             message: 'passwords are not same'
         }
 
-    }
+    },
+     passwordResetToken:{
+        type : String
+     },
+     passwordResetExpires: {
+        type: Date
+     }
+    
 
 });
 
@@ -47,15 +55,36 @@ userSchema.methods.correctPassword = async function (
 ) {
     return await bcrypt.compare(candidatePassword, userPassword);
 };
-userSchema.methods.changedPasswordAfter = function(JWTTimestamp){
-    if(this.passwordChangedAt){
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+    if (this.passwordChangedAt) {
         const changedTimestamp = parseInt(
-            this.passwordChangedAt.getTime()/1000,10
+            this.passwordChangedAt.getTime() / 1000, 10
         );
         return JWTTimestamp < changedTimestamp
     }
     return false;
 }
+userSchema.methods.correctPassword = async function (
+    candidatePassword,
+    userPassword
+) {
+    return await bcrypt.compare(candidatePassword, userPassword);
+};
+userSchema.methods.createPasswordResetToken = function(){
+    //randombytes -> random token banata hai
+    //crypto.randombytes(32)
+    //createhash->existing token ka hash banata hai
+    const resetToken = crypto.randomBytes(32).toString('Hex');
+    this.passwordResetToken = crypto         //
+    .createHash('sha256')    //sha-256 hashing algorithm use karke ek hash operation start karo 
+    .update(resetToken)
+    .digest('hex');   //ye hashed result ko hexadecimal string ke form mai return krta h 
+
+    this.passwordReseteExpires = Date.now() + 10*60*100;
+    return resetToken;
+    
+};
+//forgotpassword 
 
 
 const User = mongoose.model('User', userSchema);
