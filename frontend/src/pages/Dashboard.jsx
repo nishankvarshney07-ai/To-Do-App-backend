@@ -6,7 +6,7 @@ function Dashboard() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
-const [difficulty, setDifficulty] = useState('medium');
+  const [difficulty, setDifficulty] = useState('medium');
 
   // GET TODOS
   useEffect(() => {
@@ -40,56 +40,120 @@ const [difficulty, setDifficulty] = useState('medium');
 
 
   const handleCreateTodo = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  console.log("Create button clicked");
-  console.log("Title:", title);
-  console.log("Description:", description);
+    console.log("Create button clicked");
+    console.log("Title:", title);
+    console.log("Description:", description);
 
-  try {
-    const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
 
-    console.log("Token exists:", !!token);
+      console.log("Token exists:", !!token);
 
-    const response = await fetch(
-      'http://localhost:3000/api/v1/todos',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-       body: JSON.stringify({
-       title: title,
-       description: description,
-       date: date,
-       difficulty: difficulty
-     })
+      const response = await fetch(
+        'http://localhost:3000/api/v1/todos',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title: title,
+            description: description,
+            date: date,
+            difficulty: difficulty
+          })
+        }
+      );
+
+      console.log("Response status:", response.status);
+
+      const data = await response.json();
+
+      console.log("Create Todo response:", data);
+
+      if (data.status === 'success') {
+        setTodos((previousTodos) => [
+          ...previousTodos,
+          data.data.todo
+        ]);
+
+        setTitle('');
+        setDescription('');
+        setDate('');
+        setDifficulty('medium');
       }
-    );
 
-    console.log("Response status:", response.status);
-
-    const data = await response.json();
-
-    console.log("Create Todo response:", data);
-
-    if (data.status === 'success') {
-      setTodos((previousTodos) => [
-        ...previousTodos,
-        data.data.todo
-      ]);
-
-      setTitle('');
-      setDescription('');
-      setDate('');
-      setDifficulty('medium');
+    } catch (error) {
+      console.log("Create Todo failed:", error);
     }
+  };
+  const handleDeleteTodo = async (todo) => {
+    try {
+      const token = localStorage.getItem('token');
 
-  } catch (error) {
-    console.log("Create Todo failed:", error);
-  }
-};
+      const response = await fetch(
+        `http://localhost:3000/api/v1/todos/${todo._id}`, // ye specific _.id uesr ke liye h
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      console.log('Delete Todo status:', response.status);
+
+      if (response.status === 204) {
+        setTodos((previousTodos) =>
+          previousTodos.filter(
+            (currentTodo) => currentTodo._id !== todo._id
+          )
+        );
+      }
+
+    } catch (error) {
+      console.log('Delete Todo failed:', error);
+    }
+  };
+  const handleToggleTodo = async (todo) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(
+        `http://localhost:3000/api/v1/todos/${todo._id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            completed: !todo.completed
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      console.log('Update Todo response:', data);
+
+      if (data.status === 'success') {
+        setTodos((previousTodos) =>
+          previousTodos.map((currentTodo) =>
+            currentTodo._id === todo._id
+              ? data.data.todo
+              : currentTodo
+          )
+        );
+      }
+
+    } catch (error) {
+      console.log('Update Todo failed:', error);
+    }
+  };
 
 
   return (
@@ -127,20 +191,20 @@ const [difficulty, setDifficulty] = useState('medium');
           className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 mb-4"
         />
         <input
-         type="date"
-         value={date}
-         onChange={(e) => setDate(e.target.value)}
-         className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 mb-4"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 mb-4"
         />
-         <select
-         value={difficulty}
+        <select
+          value={difficulty}
           onChange={(e) => setDifficulty(e.target.value)}
           className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 mb-4"
         >
-         <option value="easy">Easy</option>
-         <option value="medium">Medium</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
           <option value="difficult">Difficult</option>
-         </select>
+        </select>
 
         <button
           type="submit"
@@ -173,6 +237,18 @@ const [difficulty, setDifficulty] = useState('medium');
             <p className="text-sm mt-2">
               Status: {todo.completed ? 'Completed' : 'Pending'}
             </p>
+            <button
+              onClick={() => handleToggleTodo(todo)}
+              className="mt-3 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg"
+            >
+              {todo.completed ? 'Mark Pending' : 'Mark Complete'}
+            </button>
+            <button
+              onClick={() => handleDeleteTodo(todo)}
+              className="mt-3 ml-3 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
+            >
+              Delete
+            </button>
 
           </div>
         ))}

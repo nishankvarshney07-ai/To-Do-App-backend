@@ -100,6 +100,7 @@ exports.createtodo = catchAsync(async (req, res) => {
         });
     });
 exports.updatetodo = catchAsync(async (req, res, next) => {
+    const { user, ...updateData } = req.body;
     const uptodo = await Todo.findOneAndUpdate({
         _id: req.params.id,
         user: req.user._id
@@ -119,17 +120,18 @@ exports.updatetodo = catchAsync(async (req, res, next) => {
             todo: uptodo
         }
     })
-}),
-    exports.deletetodo = catchAsync(async (req, res, next) => {
+})
 
-        const todo = await Todo.findOneAndDelete({
-            _id: req.params.id,
-            user: req.user._id
-        });
-        if (!todo) {
-            const err = new AppError('Todo not found', 404);
-            return next(err);
-        }
 
-        res.status(204).send();
+exports.deletetodo = catchAsync(async (req, res, next) => {
+    const todo = await Todo.findOneAndDelete({
+        _id: req.params.id,
+        user: req.user._id
     });
+
+    if (!todo) {
+        return next(new AppError('Todo not found', 404));
+    }
+
+    res.status(204).send();
+});
